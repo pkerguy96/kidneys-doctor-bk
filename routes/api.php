@@ -54,6 +54,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     Route::post('Admin/update/profile', [AdminController::class, 'ModifyProfile']);
 
     Route::get('patientDetails/{id}', [PatientController::class, 'patientDetails']);
+    Route::get('patientTinyData/{id}', [PatientController::class, 'patientTinyData']);
     Route::patch('storeOpNote/{id}', [OperationController::class, 'storeOpNote']);
 
     route::apiResource('Patient', PatientController::class);

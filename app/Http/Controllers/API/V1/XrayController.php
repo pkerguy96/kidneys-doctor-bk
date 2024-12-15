@@ -87,18 +87,9 @@ class XrayController extends Controller
                     'entry_time' => Carbon::now()
                 ]);
             }
-            $nurses = User::where('role', 'nurse')->get();
-            $patient = Patient::where('id', $request->input('patient_id'))->first(['nom', 'prenom']);
 
-            foreach ($nurses as $nurse) {
-                Notification::create([
-                    'user_id' => $nurse->id,
-                    'title' => 'Une radiographie est disponible de ' . $patient->nom . ' ' . $patient->prenom,
-                    'is_read' => false,
-                    'type' => 'xray',
-                    "target_id" =>  $operation->id
-                ]);
-            }
+
+
             return $this->success($operation->id, 'Radiographies enregistrées avec succès', 201);
         } catch (\Throwable $th) {
             Log::error('Error storing x-ray data: ' . $th->getMessage());
@@ -203,7 +194,11 @@ class XrayController extends Controller
                 $operation->treatment_isdone = 0; // Mark treatment as not done
                 $operation->treatment_nbr += 1; // Increment treatment_nbr for not done treatment
             }
-
+            if ($operation->total_cost == 0) {
+                $operation->is_paid = 1;
+            } else {
+                $operation->is_paid = 0;
+            }
             $operation->save(); // Save the updated operation details
 
             $waiting =   WaitingRoom::where('patient_id', $request->patient_id)->first();
@@ -277,8 +272,6 @@ class XrayController extends Controller
 
     public function insertWihtoutxray(Request $request)
     {
-
-
         // Step 1: Create a new operation
         $operation = Operation::create([
             'patient_id' => $request->input('patient_id'),
@@ -287,8 +280,6 @@ class XrayController extends Controller
             'note' => null,
 
         ]);
-
-
         // Step 2: Handle treatment status
         $isDone = $request->input('treatment_isdone', 0);
 
@@ -355,7 +346,11 @@ class XrayController extends Controller
                 ], 400);
             }
         }
-
+        if ($operation->total_cost == 0) {
+            $operation->is_paid = 1;
+        } else {
+            $operation->is_paid = 0;
+        }
 
         $operation->save();
         $waiting =   WaitingRoom::where('patient_id', $request->patient_id)->first();

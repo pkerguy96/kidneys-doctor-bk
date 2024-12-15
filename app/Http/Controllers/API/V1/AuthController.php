@@ -56,6 +56,7 @@ class AuthController extends Controller
                 }, $permissionsviarole);
             }
             //TODO SEND ONLY USER DATA
+            //TODO: Delete patient from salle dattente once deleted
             return $this->success([
                 'user' => $user,
                 'token' => $token,

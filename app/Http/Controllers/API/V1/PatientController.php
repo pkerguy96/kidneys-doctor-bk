@@ -55,6 +55,7 @@ class PatientController extends Controller
 
 
             $requestData = $request->validated();
+            Log::info($requestData);
             $data = new PatientResource(Patient::create($requestData));
 
 
@@ -93,10 +94,6 @@ class PatientController extends Controller
     public function show(string $id)
     {
         $this->authorizePermission(['superadmin', 'access_patient']);
-
-
-
-
         return  new PatientResource(Patient::where('id', $id)->first());
     }
 
@@ -138,5 +135,14 @@ class PatientController extends Controller
 
         Patient::findorfail($id)->delete();
         return response()->json(['message' => 'patient deleted successfully'], 204);
+    }
+    public function patientTinyData(string $id)
+    {
+        $patient =  Patient::where('id', $id)->select('nom', 'prenom')->first();
+        return response()->json([
+            'message' => 'Patient updated successfully.',
+            'data' =>
+            $patient,
+        ], 200);
     }
 }

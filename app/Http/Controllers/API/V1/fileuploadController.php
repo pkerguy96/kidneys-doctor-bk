@@ -182,7 +182,7 @@ class fileuploadController extends Controller
 
                 // Collect patient info
                 if (!isset($patients[$cluster][$file->patient_id])) {
-                    $patientInfo = Patient::find($file->patient_id);
+                    $patientInfo = Patient::withTrashed()->find($file->patient_id);
                     $patients[$cluster][$file->patient_id] = [
                         'nom' => $patientInfo->nom . ' ' . $patientInfo->prenom,
                     ];

@@ -38,6 +38,7 @@ class StorePatientRequest extends FormRequest
             'allergy' => ['nullable', 'string'],
             'disease' => ['nullable', 'string'],
             'referral' => ['nullable', 'string'],
+            'note' => ['nullable', 'string'],
         ];
     }
     public function prepareForValidation()
