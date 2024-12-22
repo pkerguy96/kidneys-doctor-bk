@@ -7,7 +7,9 @@ use App\Http\Controllers\API\V1\AuthController;
 use App\Http\Controllers\API\V1\PatientController;
 use App\Http\Controllers\API\V1\AppointmentController;
 use App\Http\Controllers\API\V1\BloodTestController;
+use App\Http\Controllers\API\V1\BloodTestPreference;
 use App\Http\Controllers\API\V1\DashboardKpisController;
+use App\Http\Controllers\API\V1\ExamenController;
 use App\Http\Controllers\API\V1\NurseController;
 use App\Http\Controllers\API\V1\fileuploadController;
 use App\Http\Controllers\API\V1\FinancialController;
@@ -52,6 +54,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     Route::get('Admin/logout', [AuthController::class, 'Logout']);
     /*     Route::get('getpicture', [AdminController::class, 'getpicture']); */
     Route::post('Admin/update/profile', [AdminController::class, 'ModifyProfile']);
+    Route::post('changePassword', [AuthController::class, 'changePassword']);
 
     Route::get('patientDetails/{id}', [PatientController::class, 'patientDetails']);
     Route::get('patientTinyData/{id}', [PatientController::class, 'patientTinyData']);
@@ -70,6 +73,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
 
     /* waiting room */
     route::apiResource('Waitingroom', WaitingRoomController::class);
+
     route::post('incrementPatient', [WaitingRoomController::class, 'addPatient']);
     route::post('PatientsWaitingRoom', [WaitingRoomController::class, 'PatientsWaitingRoom']);
     route::delete('decrementPatient/{id}', [WaitingRoomController::class, 'decrementPatient']);
@@ -92,6 +96,17 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     /* xray */
     route::apiResource('xray', XrayController::class);
     Route::get('showpatientxrays/{id}', [XrayController::class, 'showpatientxrays']);
+    Route::get('getxrayCategorys', [Xraypreferences::class, 'getxrayCategorys']);
+    Route::delete('deleteCategory/{id}', [Xraypreferences::class, 'deleteCategory']);
+    Route::get('getXrayPreferencesWithCategories', [Xraypreferences::class, 'getXrayPreferencesWithCategories']);
+    /* examens */
+
+    Route::get('getexamenCategorys', [ExamenController::class, 'getexamenCategorys']);
+    Route::get('getExamenPreferencesWithCategories', [ExamenController::class, 'getExamenPreferencesWithCategories']);
+    route::apiResource('examen', ExamenController::class);
+    Route::delete('deleteExamenCategory/{id}', [ExamenController::class, 'deleteExamenCategory']);
+
+
     /* operation */
     route::apiResource('Operation', OperationController::class);
     Route::get('getByOperationId/{id}', [OperationController::class, 'getByOperationId']);
@@ -141,7 +156,9 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     Route::delete('deleteRole/{id}', [PermissionController::class, 'deleteRole']);
 
 
-
+    /* blood pref */
+    route::apiResource('bloodprefs', BloodTestPreference::class);
+    Route::get('getAllPreferences', [BloodTestPreference::class, 'getAllPreferences']);
 
 
 

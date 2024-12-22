@@ -5,6 +5,7 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use App\Models\User;
+
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
  */
@@ -22,11 +23,11 @@ class UserFactory extends Factory
             'nom' => $this->faker->firstName,
             'prenom' => $this->faker->lastName,
             'date' => $this->faker->date(),
-            'address' => $this->faker->address,
+            'address' => 'rue alfred bouge',
             'sex' => $this->faker->randomElement(['male', 'female']),
-            'role' => $this->faker->randomElement(['doctor', 'nurse']),
+            'role' => $this->faker->randomElement(['doctor']),
             'phone_number' => $this->faker->unique()->phoneNumber,
-            'email' => $this->faker->unique()->safeEmail,
+            'email' => 'admin@admin.com',
             'password' => bcrypt('password'), // Default password
             'profile_picture' => null,
         ];
@@ -39,7 +40,7 @@ class UserFactory extends Factory
      */
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'email_verified_at' => null,
         ]);
     }

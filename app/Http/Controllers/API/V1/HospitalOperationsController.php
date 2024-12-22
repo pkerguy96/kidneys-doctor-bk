@@ -20,6 +20,7 @@ class HospitalOperationsController extends Controller
     {
         $searchQuery = $request->input('searchQuery');
         $perPage = $request->get('per_page', 20);
+        $isPaidFilter = $request->input('isPaid'); // Get the isPaid filter from the request
 
         // Base query with relationships
         $query = OutsourceOperation::with([
@@ -27,20 +28,25 @@ class HospitalOperationsController extends Controller
             'patient' => function ($query) {
                 $query->withTrashed(); // Include both deleted and non-deleted patients
             },
+            'operation', // Include the operation relationship
         ]);
+
+        // Apply isPaid filter through the operation relationship if provided
+        if (!is_null($isPaidFilter)) {
+            $query->whereHas('operation', function ($q) use ($isPaidFilter) {
+                $q->where('is_paid', $isPaidFilter);
+            });
+        }
 
         // Apply search filters if searchQuery is provided
         if (!empty($searchQuery)) {
             $query->where(function ($q) use ($searchQuery) {
-                // Filter by hospital name
                 $q->whereHas('hospital', function ($q) use ($searchQuery) {
                     $q->where('name', 'like', '%' . $searchQuery . '%');
                 })
-                    // Filter by patient name
                     ->orWhereHas('patient', function ($q) use ($searchQuery) {
                         $q->whereRaw("CONCAT(nom, ' ', prenom) like ?", ['%' . $searchQuery . '%']);
                     })
-                    // Filter by operation_date
                     ->orWhere('operation_date', 'like', '%' . $searchQuery . '%');
             });
         }
@@ -51,6 +57,7 @@ class HospitalOperationsController extends Controller
         // Return the paginated resource collection
         return hospitaloperationresource::collection($data);
     }
+
 
 
     /**

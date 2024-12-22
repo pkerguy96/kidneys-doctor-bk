@@ -29,32 +29,34 @@ class OperationController extends Controller
 
         $searchQuery = $request->input('searchQuery');
         $perPage = $request->get('per_page', 20);
+        $isPaid = $request->input('isPaid'); // Get the isPaid filter
 
-        // Fetch operations with relationships and apply search if necessary
         $operationsQuery = Operation::where('outsource', '<>', 1)
             ->with([
                 'patient' => function ($query) {
-                    $query->withTrashed(); // Include soft-deleted patients
+                    $query->withTrashed();
                 },
                 'payments',
                 'xray',
             ])
             ->orderBy('id', 'desc');
 
-
         if (!empty($searchQuery)) {
-            // Add search conditions for operations or related models
             $operationsQuery->whereHas('patient', function ($query) use ($searchQuery) {
                 $query->where('nom', 'like', "%{$searchQuery}%")
                     ->orWhere('prenom', 'like', "%{$searchQuery}%");
             });
         }
 
-        // Paginate results
+        if ($isPaid !== null) { // Apply the isPaid filter if provided
+            $operationsQuery->where('is_paid', $isPaid);
+        }
+
         $operations = $operationsQuery->paginate($perPage);
 
         return new OperationPaymentCollection($operations);
     }
+
 
 
     /**

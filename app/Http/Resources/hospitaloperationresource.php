@@ -22,6 +22,7 @@ class hospitaloperationresource extends JsonResource
             'operation_id' => $this->operation->id,
             'hospital' => $this->hospital->name,
             'patient_name' => $this->patient->nom . ' ' . $this->patient->prenom,
+            'Mutuelle' => $this->patient->mutuelle,
             'operation_type' => $this->operation_type,
             'operation_date' => $this->operation_date
                 ? Carbon::parse($this->operation_date)->format('Y-m-d')

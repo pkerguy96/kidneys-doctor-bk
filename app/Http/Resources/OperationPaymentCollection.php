@@ -19,6 +19,7 @@ class OperationPaymentCollection extends ResourceCollection
             return [
                 'id' => $operation->id,
                 'full_name' => $operation->patient->nom . ' ' . $operation->patient->prenom,
+                'Mutuelle' => $operation->patient->mutuelle,
                 'date' => $operation->created_at->toDateString(),
                 'total_cost' => number_format($operation->total_cost, 2),
                 'totalPaid' => number_format($totalAmountPaid, 2),

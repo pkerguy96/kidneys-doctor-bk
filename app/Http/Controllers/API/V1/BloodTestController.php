@@ -10,6 +10,7 @@ use App\Models\WaitingRoom;
 use App\Traits\HttpResponses;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class BloodTestController extends Controller
 {
@@ -20,15 +21,11 @@ class BloodTestController extends Controller
     public function index(Request $request)
     {
         try {
-            // Extract search query and pagination parameters
             $searchQuery = $request->input('searchQuery');
             $perPage = $request->get('per_page', 20);
 
-            // Build the query for blood tests with patient information
-            $query = Bloodtest::with('patient:id,nom,prenom')
-                ->orderBy('id', 'desc');
+            $query = Bloodtest::with('patient:id,nom,prenom')->orderBy('id', 'desc');
 
-            // Apply search filters if a search query is provided
             if (!empty($searchQuery)) {
                 $query->whereHas('patient', function ($q) use ($searchQuery) {
                     $q->where('nom', 'like', "%{$searchQuery}%")
@@ -36,15 +33,13 @@ class BloodTestController extends Controller
                 });
             }
 
-            // Paginate the results
             $bloodTests = $query->paginate($perPage);
 
-            // Transform the paginated data
             $data = $bloodTests->map(function ($bloodTest) {
                 return [
                     'id' => $bloodTest->id,
                     'patient_name' => $bloodTest->patient->nom . ' ' . $bloodTest->patient->prenom,
-                    'blood_test' => $bloodTest->blood_test,
+                    'blood_tests' => $bloodTest->formatted_blood_tests,
                     'created_at' => $bloodTest->created_at->format('Y-m-d'),
                 ];
             });
@@ -69,6 +64,7 @@ class BloodTestController extends Controller
     }
 
 
+
     /**
      * Store a newly created resource in storage.
      */
@@ -77,33 +73,40 @@ class BloodTestController extends Controller
         try {
             $validatedData = $request->validated();
 
+            Log::info($validatedData);
 
             $bloodTests = $validatedData['blood_test'];
 
+            // Concatenate data using commas
+            $titles = implode(',', array_column($bloodTests, 'title'));
+            $codes = implode(',', array_column($bloodTests, 'code'));
+            $delais = implode(',', array_column($bloodTests, 'DELAI'));
+            $prices = implode(',', array_column($bloodTests, 'price'));
+
             // Create a new blood test record
-            Bloodtest::create([
-                'operation_id' => $validatedData['operation_id'] ?? null,
+            BloodTest::create([
                 'patient_id' => $validatedData['patient_id'],
-                'blood_test' => $bloodTests, // Store all tests in one column
+                'operation_id' => $validatedData['operation_id'],
+                'title' => $titles,
+                'code' => $codes,
+                'delai' => $delais,
+                'price' => $prices,
             ]);
 
-
-
-            $waiting =  WaitingRoom::where('patient_id', $request->patient_id)->first();
+            // Update or create waiting room record
+            $waiting = WaitingRoom::where('patient_id', $request->patient_id)->first();
             $patient = Patient::where('id', $request->patient_id)->first();
+
             if ($waiting) {
-                $waiting->update([
-                    'status' => 'current'
-                ]);
+                $waiting->update(['status' => 'current']);
             } else {
                 WaitingRoom::create([
                     'status' => 'current',
-                    'patient_id'
-                    => $request->patient_id,
+                    'patient_id' => $request->patient_id,
                     'entry_time' => Carbon::now(),
-
                 ]);
             }
+
             return $this->success($patient, 'Test sanguin enregistré avec succès', 200);
         } catch (\Throwable $th) {
             return $this->error($th->getMessage(), 'oops something went wrong', 500);
@@ -116,18 +119,15 @@ class BloodTestController extends Controller
     public function show(string $id)
     {
         try {
-
             $bloodTest = Bloodtest::with('patient:id,nom,prenom')->findOrFail($id);
-
 
             $data = [
                 'id' => $bloodTest->id,
-                'nom' => $bloodTest->patient->nom,
-                'prenom' => $bloodTest->patient->prenom,
-                // Convert the blood_test string into an array
-                'blood_tests' => explode(',', $bloodTest->blood_test),
+                'patient_name' => $bloodTest->patient->nom . ' ' . $bloodTest->patient->prenom,
+                'blood_tests' => $bloodTest->formatted_blood_tests, // Use accessor
                 'created_at' => $bloodTest->created_at->format('Y-m-d'),
             ];
+
             return response()->json([
                 'success' => true,
                 'data' => $data,
@@ -140,6 +140,8 @@ class BloodTestController extends Controller
             ], 500);
         }
     }
+
+
 
     /**
      * Update the specified resource in storage.

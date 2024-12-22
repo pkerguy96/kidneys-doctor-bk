@@ -18,6 +18,7 @@ class PatientsWaitingRoomCollection extends ResourceCollection
             return [
                 'id' => $patient->id,
                 'name' => $patient->nom . ' ' . $patient->prenom,
+                'phone' => $patient->phone_number
             ];
         })->all();
     }

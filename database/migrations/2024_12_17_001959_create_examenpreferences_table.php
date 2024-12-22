@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('xraypreferences', function (Blueprint $table) {
+        Schema::create('examenpreferences', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('xray_category_id');
-            $table->string('xray_type');
-            $table->decimal('price', 8, 2)->nullable();
+            $table->unsignedBigInteger('Examen_category_id');
+            $table->string('Examen_type');
             $table->softDeletes();
             $table->timestamps();
-            $table->foreign('xray_category_id')->references('id')->on('xray_categories');
+            $table->foreign('Examen_category_id')->references('id')->on('examens');
         });
     }
 
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('xraypreferences');
+        Schema::dropIfExists('examenpreferences');
     }
 };

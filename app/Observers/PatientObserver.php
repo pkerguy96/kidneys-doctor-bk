@@ -14,6 +14,7 @@ class PatientObserver
     {
         WaitingRoom::create([
             'patient_id' => $patient->id,
+            'status' => 'waiting',
             'entry_time' => now()
         ]);
     }
@@ -31,7 +32,7 @@ class PatientObserver
      */
     public function deleted(Patient $patient): void
     {
-        //
+        WaitingRoom::where('patient_id', $patient->id)->delete();
     }
 
     /**

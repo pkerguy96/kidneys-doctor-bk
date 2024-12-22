@@ -19,7 +19,8 @@ class OperationXrayCollection extends ResourceCollection
                 "id" => $xray->id,
                 'operation_id' => $xray->operation_id,
                 'patient_id' => $xray->patient_id,
-                'xray_type' => $xray->xray_type,
+                'xray_type' => $xray->xray_name,
+
                 'price' => (int) $xray->price,
             ];
         })->all(); // Use `all()` to convert the collection to an array

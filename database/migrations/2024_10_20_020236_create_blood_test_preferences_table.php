@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('xraypreferences', function (Blueprint $table) {
+        Schema::create('blood_test_preferences', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('xray_category_id');
-            $table->string('xray_type');
-            $table->decimal('price', 8, 2)->nullable();
-            $table->softDeletes();
+            $table->string('title')->unique();
+            $table->string('code')->unique()->nullable();
+            $table->string('price')->nullable();
+            $table->string('delai')->nullable();
             $table->timestamps();
-            $table->foreign('xray_category_id')->references('id')->on('xray_categories');
+            $table->softDeletes();
         });
     }
 
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('xraypreferences');
+        Schema::dropIfExists('blood_test_preferences');
     }
 };

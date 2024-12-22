@@ -11,6 +11,7 @@ use App\Http\Requests\LoginUserRequest;
 use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\PersonalAccessToken;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -86,6 +87,21 @@ class AuthController extends Controller
 
         return response()->json(['success' => 'valid token'], 200);
     }
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'new_password' => 'required|min:8|confirmed',
+        ]);
+
+        $user = Auth::user();
+
+        // Update the user's password
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json(['message' => 'Le mot de passe a été modifié avec succès'], 200);
+    }
+
     public function Logout()
     {
         if (auth::check()) {
