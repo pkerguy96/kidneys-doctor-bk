@@ -16,10 +16,10 @@ return new class extends Migration
             $table->unsignedBigInteger('operation_id')->nullable();
             $table->unsignedBigInteger('patient_id');
 
-            $table->string('title')->nullable();
-            $table->string('code')->nullable();
-            $table->string('delai')->nullable();
-            $table->string('price')->nullable();
+            $table->longText('title')->nullable();
+            $table->longText('code')->nullable();
+            $table->longText('delai')->nullable();
+            $table->longText('price')->nullable();
             $table->timestamps();
             $table->foreign('operation_id')->references('id')->on('operations')->onDelete('cascade');
             $table->foreign('patient_id')->references('id')->on('patients');
