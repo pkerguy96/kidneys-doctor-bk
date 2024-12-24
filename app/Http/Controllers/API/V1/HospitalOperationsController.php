@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\hospitaloperationresource;
+use App\Models\hospital;
 use App\Models\Operation;
 use App\Models\outsourceOperation;
 use App\Models\Payment;
@@ -130,27 +131,20 @@ class HospitalOperationsController extends Controller
     }
 
 
-    public function searchPatients(Request $request)
-    {
-        $search = $request->input('search', ''); // Get search input from query params
-        $patients = DB::table('patients')
-            ->select('id', DB::raw("CONCAT(nom, ' ', prenom) as name"))
-            ->where(DB::raw("CONCAT(nom, ' ', prenom)"), 'LIKE', "%{$search}%") // Search in full name
-            ->paginate(10); // Lazy loading with pagination
 
-        return response()->json($patients);
-    }
 
     public function searchHospitals(Request $request)
     {
-        $search = $request->input('search', ''); // Get search input from query params
-        $hospitals = DB::table('hospitals')
-            ->select('id', 'name')
-            ->where('name', 'LIKE', "%{$search}%") // Search in hospital name
-            ->paginate(10); // Lazy loading with pagination
+        $search = $request->input('searchQuery');
+        $hospitals =
+            hospital::where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%");
+            })->orderBy('id', 'desc')->get();
 
-        return response()->json($hospitals);
+        return response()->json(['data' => $hospitals]);
     }
+
+
     /**
      * Display the specified resource.
      */

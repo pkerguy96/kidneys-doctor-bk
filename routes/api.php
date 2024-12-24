@@ -142,7 +142,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
 
 
     Route::get('/searchPatients', [HospitalOperationsController::class, 'searchPatients']);
-    Route::get('/searchHospitals', [HospitalOperationsController::class, 'searchHospitals']);
+    Route::post('/searchHospitals', [HospitalOperationsController::class, 'searchHospitals']);
 
     /* roles */
 
