@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Models\UserPreference;
+use Illuminate\Support\Facades\DB;
 
 class DashboardKpisController extends Controller
 {
@@ -511,5 +512,34 @@ class DashboardKpisController extends Controller
 
         // Transform the payments data into the appropriate resource collection
         return SearchOperationDebtResource::collection($payments);
+    }
+    public function getPaymentKpi()
+    {
+        // Aggregate total cost per operation from the `operations` table
+        $operations = DB::table('operations')
+            ->select('id as operation_id', DB::raw('SUM(total_cost) as total_operation_cost'))
+            ->groupBy('id');
+
+        // Aggregate total payments per operation from the `payments` table
+        $payments = DB::table('payments')
+            ->select('operation_id', DB::raw('SUM(amount_paid) as total_amount_paid'))
+            ->groupBy('operation_id');
+
+        // Join aggregated data from operations and payments
+        $results = DB::table(DB::raw("({$operations->toSql()}) as operations"))
+            ->mergeBindings($operations)
+            ->leftJoinSub($payments, 'payments', 'operations.operation_id', '=', 'payments.operation_id')
+            ->select(
+                DB::raw('COALESCE(SUM(payments.total_amount_paid), 0) as total_paid'),
+                DB::raw('COALESCE(SUM(operations.total_operation_cost), 0) - COALESCE(SUM(payments.total_amount_paid), 0) as total_debt')
+            )
+            ->first();
+
+        return response()->json([
+            'data' => [
+                'Paiement' => $results->total_paid ?? 0,
+                'Crédit' => $results->total_debt ?? 0,
+            ]
+        ]);
     }
 }

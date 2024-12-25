@@ -180,6 +180,10 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     Route::get('OnlyCashierNumber', [DashboardKpisController::class, 'OnlyCashierNumber']);
     Route::post('PatientsDebt', [DashboardKpisController::class, 'PatientsDebt']);
     Route::get('countPatientsByReferral', [DashboardKpisController::class, 'countPatientsByReferral']);
+    Route::get('getPaymentKpi', [DashboardKpisController::class, 'getPaymentKpi']);
+
+
+
     /*  route::post('DashboardKpiUserPref', [UserPreferenceController::class, 'DashboardKpiUserPref']);
     route::post('OperationUserPref', [UserPreferenceController::class, 'OperationUserPref']);
     route::get('getOperationPrefs', [UserPreferenceController::class, 'getOperationPrefs']);
