@@ -309,31 +309,4 @@ class OperationController extends Controller
 
         return new XrayCollectionForNurse($xrays);
     }
-    public function storeOpNote(Request $request, $id)
-    {
-
-        $validated = $request->validate([
-
-            'note' => 'nullable|string',
-
-        ]);
-
-        try {
-
-            $patient = Patient::findOrFail($id);
-            $existingNote = $patient->note ?? '';
-            $newNote = $validated['note'] ?? '';
-            $combinedNote = $existingNote ? $existingNote . ', ' . $newNote : $newNote;
-            $patient->update(['note' => $combinedNote]);
-
-            return response()->json([
-                'message' => 'Operation and note updated successfully.',
-
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while creating the operation: ' . $e->getMessage(),
-            ], 500);
-        }
-    }
 }

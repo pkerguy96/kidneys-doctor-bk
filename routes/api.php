@@ -22,6 +22,7 @@ use App\Http\Controllers\API\V1\WaitingRoomController;
 use App\Http\Controllers\API\V1\XrayController;
 use App\Http\Controllers\API\V1\NotificationAlertController;
 use App\Http\Controllers\API\V1\OperationPrefsController;
+use App\Http\Controllers\API\V1\OperationStepsController;
 use App\Http\Controllers\API\V1\PermissionController;
 use App\Http\Controllers\API\V1\ProductConsumableController;
 use App\Http\Controllers\API\V1\ProductSupplierController;
@@ -58,7 +59,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
 
     Route::get('patientDetails/{id}', [PatientController::class, 'patientDetails']);
     Route::get('patientTinyData/{id}', [PatientController::class, 'patientTinyData']);
-    Route::patch('storeOpNote/{id}', [OperationController::class, 'storeOpNote']);
+
 
     route::apiResource('Patient', PatientController::class);
     Route::apiResource('Nurse', NurseController::class);
@@ -190,4 +191,16 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     route::delete('deleteOperationPrefs/{id}', [UserPreferenceController::class, 'deleteOperationPrefs']); */
     Route::delete('deletePaymentDetail/{id}', [OperationController::class, 'deletePaymentDetail']);
     Route::get('PayementVerificationCheckout/{id}', [OperationController::class, 'PayementVerificationCheckout']);
+
+
+
+
+
+    /* Operation Steps Routes */
+    Route::patch('storeOpNote/{id}', [OperationStepsController::class, 'storeOpNote']);
+    Route::patch('EditOpNote/{id}', [OperationStepsController::class, 'EditOpNote']);
+    Route::post('StoreParaclinique', [OperationStepsController::class, 'StoreParaclinique']);
+    Route::post('ValidationofSteps', [OperationStepsController::class, 'ValidationofSteps']);
+    Route::get('fetchNote/{id}', [OperationStepsController::class, 'fetchNote']);
+    Route::get('fetchXrays/{id}', [OperationStepsController::class, 'fetchXrays']);
 });

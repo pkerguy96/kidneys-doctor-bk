@@ -14,12 +14,11 @@ return new class extends Migration
         Schema::create('operations', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('patient_id');
-            $table->decimal('total_cost', 10, 2);
-            $table->boolean('is_paid');
+            $table->decimal('total_cost', 10, 2)->nullable();
+            $table->boolean('is_paid')->nullable();
             $table->text('note')->nullable();
             $table->softDeletes();
             $table->timestamps();
-
             $table->foreign('patient_id')->references('id')->on('patients');
         });
     }

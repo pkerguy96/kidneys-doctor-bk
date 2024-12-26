@@ -35,4 +35,8 @@ class Operation extends Model
     {
         return $this->hasMany(outsourceOperation::class, 'operation_id');
     }
+    public function OperationNote()
+    {
+        return $this->hasOne(OperationNote::class, 'operation_id');
+    }
 }
