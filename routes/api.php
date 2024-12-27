@@ -200,7 +200,14 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     Route::patch('storeOpNote/{id}', [OperationStepsController::class, 'storeOpNote']);
     Route::patch('EditOpNote/{id}', [OperationStepsController::class, 'EditOpNote']);
     Route::post('StoreParaclinique', [OperationStepsController::class, 'StoreParaclinique']);
+    Route::post('updateParaclinique', [OperationStepsController::class, 'updateParaclinique']);
     Route::post('ValidationofSteps', [OperationStepsController::class, 'ValidationofSteps']);
     Route::get('fetchNote/{id}', [OperationStepsController::class, 'fetchNote']);
     Route::get('fetchXrays/{id}', [OperationStepsController::class, 'fetchXrays']);
+    Route::get('getOrdonanceId/{id}', [OperationStepsController::class, 'getOrdonanceId']);
+    Route::get('fetchOperationBloodTests/{id}', [OperationStepsController::class, 'fetchOperationBloodTests']);
+    Route::post('EditOperationBloodTest', [BloodTestController::class, 'EditOperationBloodTest']);
+    Route::delete('deleteRadio/{id}', [OperationStepsController::class, 'deleteRadio']);
+    Route::delete('deleteBloodTest/{id}', [OperationStepsController::class, 'deleteBloodTest']);
+    Route::delete('deleteOrdonance/{id}', [OperationStepsController::class, 'deleteOrdonance']);
 });

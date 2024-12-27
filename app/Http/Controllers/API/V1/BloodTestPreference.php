@@ -30,7 +30,7 @@ class BloodTestPreference extends Controller
                     return [
                         'title' => $preference->title,
                         'code' => $preference->code,
-                        'DELAI' => $preference->delai,
+                        'delai' => $preference->delai,
                         'price' => $preference->price,
                     ];
                 });

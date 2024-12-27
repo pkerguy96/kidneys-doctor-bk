@@ -71,7 +71,7 @@ class OrdonanceController extends Controller
 
             // Create the Ordonance record
             $ordonance = Ordonance::create([
-
+                'operation_id' => $request->input('operation_id'),
                 'patient_id' => $request->input('patient_id'),
                 'date' => $request->input('date'),
             ]);

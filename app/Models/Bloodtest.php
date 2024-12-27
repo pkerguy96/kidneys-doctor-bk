@@ -20,10 +20,10 @@ class Bloodtest extends Model
     public function getFormattedBloodTestsAttribute()
     {
         // Explode comma-separated fields into arrays
-        $titles = explode(',', $this->title);
-        $codes = explode(',', $this->code);
-        $delais = explode(',', $this->DELAI);
-        $prices = explode(',', $this->price);
+        $titles = explode('|', $this->title);
+        $codes = explode('|', $this->code);
+        $delais = explode('|', $this->delai);
+        $prices = explode('|', $this->price);
 
         // Format blood test rows
         $bloodTests = [];

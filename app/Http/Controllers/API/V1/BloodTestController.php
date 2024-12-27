@@ -78,10 +78,10 @@ class BloodTestController extends Controller
             $bloodTests = $validatedData['blood_test'];
 
             // Concatenate data using commas
-            $titles = implode(',', array_column($bloodTests, 'title'));
-            $codes = implode(',', array_column($bloodTests, 'code'));
-            $delais = implode(',', array_column($bloodTests, 'DELAI'));
-            $prices = implode(',', array_column($bloodTests, 'price'));
+            $titles = implode('|', array_column($bloodTests, 'title'));
+            $codes = implode('|', array_column($bloodTests, 'code'));
+            $delais = implode('|', array_column($bloodTests, 'DELAI'));
+            $prices = implode('|', array_column($bloodTests, 'price'));
 
             // Create a new blood test record
             BloodTest::create([
@@ -112,7 +112,51 @@ class BloodTestController extends Controller
             return $this->error($th->getMessage(), 'oops something went wrong', 500);
         }
     }
+    public function EditOperationBloodTest(StoreBloodTestRequest $request)
+    {
+        try {
+            $validatedData = $request->validated();
 
+            $bloodTests = $validatedData['blood_test'];
+
+            // Concatenate data using commas
+            $titles = implode('|', array_column($bloodTests, 'title'));
+            $codes = implode('|', array_column($bloodTests, 'code'));
+            $delais = implode('|', array_column($bloodTests, 'DELAI'));
+            $prices = implode('|', array_column($bloodTests, 'price'));
+
+            // Delete existing blood tests for the operation ID
+            BloodTest::where('operation_id', $validatedData['operation_id'])->delete();
+
+            // Create a new blood test record
+            BloodTest::create([
+                'patient_id' => $validatedData['patient_id'],
+                'operation_id' => $validatedData['operation_id'],
+                'title' => $titles,
+                'code' => $codes,
+                'delai' => $delais,
+                'price' => $prices,
+            ]);
+
+            // Update or create waiting room record
+            $waiting = WaitingRoom::where('patient_id', $request->patient_id)->first();
+            $patient = Patient::where('id', $request->patient_id)->first();
+
+            if ($waiting) {
+                $waiting->update(['status' => 'current']);
+            } else {
+                WaitingRoom::create([
+                    'status' => 'current',
+                    'patient_id' => $request->patient_id,
+                    'entry_time' => Carbon::now(),
+                ]);
+            }
+
+            return $this->success($patient, 'Test sanguin mis à jour avec succès', 200);
+        } catch (\Throwable $th) {
+            return $this->error($th->getMessage(), 'oops something went wrong', 500);
+        }
+    }
     /**
      * Display the specified resource.
      */

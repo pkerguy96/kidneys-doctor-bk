@@ -4,9 +4,11 @@ namespace App\Http\Controllers\API\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreXrayRequest;
+use App\Models\Bloodtest;
 use App\Models\Notification;
 use App\Models\Operation;
 use App\Models\OperationNote;
+use App\Models\Ordonance;
 use Illuminate\Http\Request;
 use App\Models\Patient;
 use App\Models\Product;
@@ -111,6 +113,62 @@ class OperationStepsController extends Controller
             return $this->error($th->getMessage(), 'Une erreur s\'est produite lors de l\'enregistrement des radiographies', 500);
         }
     }
+    public function updateParaclinique(StoreXrayRequest $request)
+    {
+        try {
+            // Validate request data
+            $validatedData = $request->validated();
+
+            $xrayItems = $validatedData['xrays']; // Expecting 'xrays' as an array
+            $totalPrice = 0;
+
+            // Find the operation or fail
+            $operation = Operation::findOrFail($validatedData['operation_id']);
+            Log::info($validatedData['operation_id']);
+            Log::info($operation);
+            // Delete all X-rays related to the operation ID
+            Xray::where('operation_id', $operation->id)->delete();
+
+            // Insert the new X-rays
+            foreach ($xrayItems as $xray) {
+                $totalPrice += $xray['price'];
+
+                $xrayData = [
+                    'patient_id' => $validatedData['patient_id'],
+                    'operation_id' => $operation->id,
+                    'xray_type' => $xray['type'],
+                    'xray_name' => $xray['name'],
+                    'price' => $xray['price'],
+                    'note' => $xray['note'],
+                ];
+
+                Xray::create($xrayData);
+            }
+
+            // Update the operation's total cost
+            $operation->update(['total_cost' => $totalPrice]);
+
+            // Update or create a waiting room entry
+            $waiting = WaitingRoom::where('patient_id', $request->patient_id)->first();
+            if ($waiting) {
+                $waiting->update([
+                    'status' => 'current',
+                ]);
+            } else {
+                WaitingRoom::create([
+                    'status' => 'current',
+                    'patient_id' => $request->patient_id,
+                    'entry_time' => Carbon::now(),
+                ]);
+            }
+
+            return $this->success($operation->id, 'Radiographies mises à jour avec succès', 200);
+        } catch (\Throwable $th) {
+            Log::error('Error updating x-ray data: ' . $th->getMessage());
+
+            return $this->error($th->getMessage(), 'Une erreur s\'est produite lors de la mise à jour des radiographies', 500);
+        }
+    }
     public function EditOpNote(Request $request, $id)
     {
         $validated = $request->validate([
@@ -161,8 +219,6 @@ class OperationStepsController extends Controller
     }
     public function fetchXrays($operation_id)
     {
-
-        Log::info($operation_id);
         try {
             $data = Xray::where('operation_id', $operation_id)
                 ->select('id', 'xray_name', 'xray_type', 'price')
@@ -170,10 +226,63 @@ class OperationStepsController extends Controller
             if ($data->isEmpty()) {
                 return $this->success([], 'No X-rays found', 200);
             }
-
             return $this->success($data, null, 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to fetch X-rays: ' . $e->getMessage()], 500);
         }
+    }
+    public function fetchOperationBloodTests($operationId)
+    {
+        try {
+            // Fetch blood tests based on operation_id
+            $rawBloodTests = BloodTest::where('operation_id', $operationId)->get();
+
+            $formattedBloodTests = [];
+
+            foreach ($rawBloodTests as $bloodTest) {
+                // Use the model's accessor to get formatted data
+                $formattedBloodTests = array_merge($formattedBloodTests, $bloodTest->formatted_blood_tests);
+            }
+
+            // Return formatted results or an empty array if none found
+            if (empty($formattedBloodTests)) {
+                return $this->success([], 'No blood tests found', 200);
+            }
+
+            return $this->success($formattedBloodTests, 'Blood tests retrieved successfully', 200);
+        } catch (\Throwable $th) {
+            Log::error('Error fetching blood tests: ' . $th->getMessage());
+
+            return $this->error($th->getMessage(), 'An error occurred while retrieving blood tests', 500);
+        }
+    }
+    public function getOrdonanceId($operationId)
+    {
+        $data = Ordonance::with('OrdonanceDetails')->where('operation_id', $operationId)->select('id', 'date')->first();
+        return $this->success($data, null, 200);
+    }
+
+
+    public function deleteRadio($operationid)
+    {
+        xray::where('operation_id', $operationid)->delete();
+        $this->success(null, 'success', 200);
+    }
+
+    public function deleteBloodTest($operationid)
+    {
+        Bloodtest::where('operation_id', $operationid)->delete();
+
+        $this->success(null, 'success', 200);
+    }
+
+    public function deleteOrdonance($operationid)
+    {
+        Log::info('ordonance op', [$operationid]);
+        Log::info('ordonance op', [Ordonance::where('operation_id', $operationid)->get()]);
+        Ordonance::where('operation_id', $operationid)->delete();
+
+
+        $this->success(null, 'success', 200);
     }
 }
