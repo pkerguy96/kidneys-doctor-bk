@@ -77,7 +77,7 @@ class PatientController extends Controller
     {
         $this->authorizePermission(['superadmin', 'detail_patient', 'access_patient']);
 
-        return  new PatientDetailResource(Patient::with('appointments', 'operations', 'operations.operationdetails', 'Xray', 'Ordonance')->where('id', $id)->first());
+        return  new PatientDetailResource(Patient::with('appointments', 'operations', 'operations.operationdetails', 'Xray', 'Ordonance', 'operationsNote')->where('id', $id)->first());
     }
 
     /*  public function testpatientstore(Request $request)

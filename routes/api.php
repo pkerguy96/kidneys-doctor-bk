@@ -159,7 +159,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
 
     /* blood pref */
     route::apiResource('bloodprefs', BloodTestPreference::class);
-    Route::get('getAllPreferences', [BloodTestPreference::class, 'getAllPreferences']);
+    Route::post('getAllPreferences', [BloodTestPreference::class, 'getAllPreferences']);
 
 
 

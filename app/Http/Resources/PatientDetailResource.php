@@ -34,8 +34,19 @@ class PatientDetailResource extends JsonResource
             'operations' => $this->mapOperations(optional($this->operations)),
             'upcomingAppointmentsCount' => $this->countAppointments($this->appointments, 'upcoming'),
             'pastAppointmentsCount' => $this->countAppointments($this->appointments, 'past'),
-            'ordonances' => $this->mapOrdonances(optional($this->Ordonance))
+            'ordonances' => $this->mapOrdonances(optional($this->Ordonance)),
+            'operationNotes' => $this->mapOperationNotes($this->operationsNote),
+
         ];
+    }
+    protected function mapOperationNotes($operationNotes)
+    {
+        return optional($operationNotes)->map(function ($note) {
+            return [
+                'note' => $note->note,
+                'date' => $note->created_at ? Carbon::parse($note->created_at)->format('Y-m-d H:i:s') : null,
+            ];
+        }) ?? [];
     }
     protected function mapOrdonances($ordonances)
     {

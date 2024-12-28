@@ -21,7 +21,7 @@ class BloodTestPreference extends Controller
             'data' => $preferences,
         ], 200);
     }
-    public function getAllPreferences()
+    /*  public function getAllPreferences()
     {
         try {
             // Fetch all preferences and map to the required format
@@ -46,7 +46,41 @@ class BloodTestPreference extends Controller
                 'error' => $th->getMessage(),
             ], 500);
         }
+    } */
+    public function getAllPreferences(Request $request)
+    {
+        try {
+            // Get the search query from the request
+            $searchQuery = $request->input('searchQuery', '');
+
+            // Fetch preferences filtered by title or code, case-insensitive
+            $preferences = ModelsBloodTestPreference::when(!empty($searchQuery), function ($query) use ($searchQuery) {
+                $query->whereRaw('LOWER(title) LIKE ?', ["%" . strtolower($searchQuery) . "%"])
+                    ->orWhereRaw('LOWER(code) LIKE ?', ["%" . strtolower($searchQuery) . "%"]);
+            })
+                ->get(['title', 'code', 'price', 'delai']) // Specify the columns to retrieve
+                ->map(function ($preference) {
+                    return [
+                        'title' => $preference->title,
+                        'code' => $preference->code,
+                        'delai' => $preference->delai,
+                        'price' => $preference->price,
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $preferences,
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong.',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
     }
+
     /**
      * Store a newly created resource in storage.
      */

@@ -28,6 +28,7 @@ class OperationStepsController extends Controller
     {
         $validated = $request->validate([
             'note' => 'nullable|string',
+            'operation' => 'nullable'
         ]);
 
         try {
@@ -35,7 +36,8 @@ class OperationStepsController extends Controller
             $patient = Patient::findOrFail($id);
 
             // Create the operation
-            $operation = Operation::create([
+
+            $operation = isset($request->operation) ? Operation::findorfail($request->operation) : Operation::create([
                 'patient_id' => $patient->id,
             ]);
 
@@ -43,7 +45,8 @@ class OperationStepsController extends Controller
             if (!empty($validated['note'])) {
                 OperationNote::create([
                     'operation_id' => $operation->id,
-                    'note' => $validated['note']
+                    'note' => $validated['note'],
+                    'patient_id' => $patient->id,
                 ]);
             }
 
@@ -184,7 +187,8 @@ class OperationStepsController extends Controller
             if (!empty($validated['note'])) {
                 OperationNote::updateOrCreate(
                     ['operation_id' => $validated['operation_id']],
-                    ['note' => $validated['note']]
+                    ['note' => $validated['note']],
+                    ['patient_id' => $patient->id]
                 );
             }
 
