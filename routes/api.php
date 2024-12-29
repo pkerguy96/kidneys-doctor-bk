@@ -172,6 +172,8 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1', 'm
     Route::get('getTotalRevenue', [DashboardKpisController::class, 'getTotalRevenue']);
     Route::get('getAppointments', [DashboardKpisController::class, 'getAppointments']);
     Route::get('getCanceledAppointments', [DashboardKpisController::class, 'getCanceledAppointments']);
+    Route::get('getAppointmentCancellationRate', [DashboardKpisController::class, 'getAppointmentCancellationRate']);
+    Route::get('getAverageTimeInCurrent', [DashboardKpisController::class, 'getAverageTimeInCurrent']);
     Route::get('calculateAgePercentage', [DashboardKpisController::class, 'calculateAgePercentage']);
     Route::get('TotalPatients', [DashboardKpisController::class, 'TotalPatients']);
     Route::get('appointmentKpipeak', [DashboardKpisController::class, 'appointmentKpipeak']);

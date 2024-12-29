@@ -85,4 +85,8 @@ class Patient extends Model
     {
         return $this->hasMany(OperationNote::class, 'patient_id');
     }
+    public function waitingroomlogs()
+    {
+        return $this->hasMany(waitingroomlogs::class, 'patient_id');
+    }
 }

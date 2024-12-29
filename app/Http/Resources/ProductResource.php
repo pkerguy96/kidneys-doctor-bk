@@ -21,7 +21,7 @@ class ProductResource extends JsonResource
             'product_family' => $this->product_family,
             'product_nature' => $this->product_nature,
             'min_stock' => (int) $this->min_stock,
-
+            'qte' => (int) $this->qte
         ];
     }
 }

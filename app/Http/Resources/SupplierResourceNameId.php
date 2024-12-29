@@ -16,7 +16,7 @@ class SupplierResourceNameId extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->contact_person,
+            'name' => $this->company_name,
 
         ];
     }

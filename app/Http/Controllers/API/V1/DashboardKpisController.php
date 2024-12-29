@@ -14,10 +14,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Models\UserPreference;
+use App\Models\WaitingRoomLogs;
+use App\Traits\HttpResponses;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class DashboardKpisController extends Controller
 {
+    use HttpResponses;
     public function getAppointments()
     {
         $user = Auth::user();
@@ -55,7 +59,38 @@ class DashboardKpisController extends Controller
 
         $user = Auth::user();
         $userPreference = UserPreference::where('doctor_id', $user->id)->pluck('kpi_date')->first();
-        $id = ($user->role === 'doctor') ? $user->id : $user->doctor_id;
+        $startDate = null;
+        $endDate = null;
+        switch ($userPreference) {
+            case 'monthly':
+                $startDate = Carbon::now()->startOfMonth();
+                $endDate = Carbon::now()->endOfMonth();
+                break;
+            case 'weekly':
+                $startDate = Carbon::now()->startOfWeek();
+                $endDate = Carbon::now()->endOfWeek();
+                break;
+            case 'day':
+                $startDate = Carbon::today();
+                $endDate = Carbon::today()->endOfDay();
+                break;
+            case 'yearly':
+                $startDate = Carbon::now()->startOfYear();
+                $endDate = Carbon::now()->endOfYear();
+                break;
+            default:
+                $startDate = Carbon::now()->startOfMonth();
+                $endDate = Carbon::now()->endOfMonth();
+                break;
+        }
+
+        $data = Appointment::whereBetween('created_at', [$startDate, $endDate])->withTrashed()->whereNotNull('deleted_at')->count();
+        return response()->json(['data' => $data]);
+    }
+    public function getAppointmentCancellationRate()
+    {
+        $user = Auth::user();
+        $userPreference = UserPreference::where('doctor_id', $user->id)->pluck('kpi_date')->first();
 
         $startDate = null;
         $endDate = null;
@@ -68,18 +103,110 @@ class DashboardKpisController extends Controller
                 $startDate = Carbon::now()->startOfWeek();
                 $endDate = Carbon::now()->endOfWeek();
                 break;
-            case 'daily':
+            case 'day':
                 $startDate = Carbon::today();
                 $endDate = Carbon::today()->endOfDay();
+                break;
+            case 'yearly':
+                $startDate = Carbon::now()->startOfYear();
+                $endDate = Carbon::now()->endOfYear();
                 break;
             default:
                 $startDate = Carbon::now()->startOfMonth();
                 $endDate = Carbon::now()->endOfMonth();
                 break;
         }
-        $data = Appointment::whereBetween('created_at', [$startDate, $endDate])->withTrashed()->whereNotNull('deleted_at')->count();
-        return response()->json(['data' => $data]);
+
+        $totalAppointments = Appointment::whereBetween('created_at', [$startDate, $endDate])->count();
+        $canceledAppointments = Appointment::whereBetween('created_at', [$startDate, $endDate])
+            ->withTrashed()
+            ->whereNotNull('deleted_at')
+            ->count();
+
+        $cancellationRate = $totalAppointments > 0 ? ($canceledAppointments / $totalAppointments) * 100 : null;
+
+
+        return response()->json([
+            'data' => [
+                'totalAppointments' => $totalAppointments,
+                'canceledAppointments' => $canceledAppointments,
+                'cancellationRate' => $cancellationRate,
+            ],
+        ]);
     }
+    public function getAverageTimeInCurrent()
+    {
+        $cacheKey = 'average_time_in_current';
+        $cachedResult = Cache::get($cacheKey);
+
+        if ($cachedResult) {
+            return response()->json([
+                'data' => $cachedResult,
+            ]);
+        }
+        $logs = WaitingRoomLogs::whereIn('status', ['current', 'exit_current'])
+            ->orderBy('waiting_room_id')
+            ->orderBy('status_changed_at')
+            ->get()
+            ->groupBy('waiting_room_id');
+
+        $totalTimeSpent = 0;
+        $patientSessions = 0;
+
+        foreach ($logs as $waitingRoomId => $logGroup) {
+            $currentEntryTime = null;
+
+            foreach ($logGroup as $log) {
+                if ($log->status === 'current') {
+                    $currentEntryTime = $log->status_changed_at;
+                } elseif ($log->status === 'exit_current' && $currentEntryTime) {
+                    $totalTimeSpent += strtotime($log->status_changed_at) - strtotime($currentEntryTime);
+                    $currentEntryTime = null; // Reset for the next pair
+                    $patientSessions++;
+                }
+            }
+
+            // Handle unmatched "current" log
+            if ($currentEntryTime) {
+                $totalTimeSpent += strtotime(now()) - strtotime($currentEntryTime);
+                $patientSessions++;
+            }
+        }
+
+        $averageTime = $patientSessions > 0 ? $totalTimeSpent / $patientSessions : 0;
+        $readableTime = $this->formatTime($averageTime);
+        $result = [
+            'average_time_in_current' => round($averageTime, 2), // seconds
+            'formatted_time' =>  $readableTime,  // formatted HH:mm:ss
+        ];
+
+        // Cache the result for future requests
+        /* Cache::put($cacheKey, $result, now()->addMinutes(10)); */ // Cache for 10 minutes
+
+        return response()->json([
+            'data' => $result,
+        ]);
+    }
+    private function formatTime($timeInSeconds)
+    {
+        $hours = floor($timeInSeconds / 3600);
+        $minutes = floor(($timeInSeconds % 3600) / 60);
+        $seconds = $timeInSeconds % 60;
+
+        $parts = [];
+        if ($hours > 0) {
+            $parts[] = $hours . ' ' . ($hours > 1 ? 'heures' : 'heure');
+        }
+        if ($minutes > 0) {
+            $parts[] = $minutes . ' ' . ($minutes > 1 ? 'minutes' : 'minute');
+        }
+        if ($seconds > 0) {
+            $parts[] = $seconds . ' ' . ($seconds > 1 ? 'secondes' : 'seconde');
+        }
+
+        return implode(', ', $parts);
+    }
+
     public function getDates($type)
     {
         switch ($type) {
